@@ -9,13 +9,16 @@ namespace Candid
     {
         public static LoginManager  Instance;
         private Action<string> callback = null;
-
-        [SerializeField]
-        string url = "https://7p3gx-jaaaa-aaaal-acbda-cai.raw.ic0.app/";
+        private string url = "https://7p3gx-jaaaa-aaaal-acbda-cai.raw.ic0.app/";
 
         void Awake()
         {
             Instance = this;
+        }
+
+        public void SetUlr(string _url)
+        {
+            url = _url;
         }
 
         /// <summary>

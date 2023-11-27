@@ -1,0 +1,5 @@
+On the quick start page, invite for the discord server has expired
+The tutorial is outdated
+I uploaded the images of the nfts, they are saved but I can't fetch them from the UI: https://prnt.sc/YiP-a9Sbnqwi https://prnt.sc/aKaDGFS07KZP
+There is no indication what should be in those input fields: https://prnt.sc/5DTWr_DGcrO7
+When creating action, we need to fill this field named filed, what should we insert into it? Field for a field name is not very descriptive :D https://prnt.sc/sWRKsMmgPl0q

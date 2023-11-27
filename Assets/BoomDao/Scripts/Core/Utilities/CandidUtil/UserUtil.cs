@@ -34,6 +34,7 @@ public static class UserUtil
             return e;
         });
     }
+    
     public static void UpdateLoginData(IAgent agent, string principal, string accountIdentifier, bool asAnon)
     {
         BroadcastState.ForceInvoke<DataState<LoginData>>(e =>
@@ -140,7 +141,7 @@ public static class UserUtil
     /// <returns>Could be either the user AccountIdentifier or an error message</returns>
     public static UResult<string> GetAccountIdentifier()
     {
-        var result = GetLogInData();
+        UResult<LoginData, string> result = GetLogInData();
         if (result.Tag == UResultTag.Err)
         {
             return new(new UResult<string>.ERR<string>(result.AsErr()));

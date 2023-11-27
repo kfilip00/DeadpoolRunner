@@ -1,14 +1,17 @@
+using JetBrains.Annotations;
+using UnityEngine.Events;
+
 namespace Candid
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Candid.Extv2Standard;
-    using Candid.Extv2Boom;
-    using Candid.IcpLedger;
-    using Candid.IcpLedger.Models;
-    using Candid.World;
-    using Candid.WorldHub;
+    using Extv2Standard;
+    using Extv2Boom;
+    using IcpLedger;
+    using IcpLedger.Models;
+    using World;
+    using WorldHub;
     using Cysharp.Threading.Tasks;
     using EdjCase.ICP.Agent.Agents;
     using EdjCase.ICP.Agent.Identities;
@@ -17,44 +20,42 @@ namespace Candid
     using Boom.Utility;
     using Boom.Values;
     using UnityEngine;
-    using WebSocketSharp;
-    using Boom.UI;
-    using Candid.IcrcLedger;
+    using IcrcLedger;
     using Unity.VisualScripting;
-    using Candid.UserNode;
+    using UserNode;
     using Boom;
 
     public class CandidApiManager : MonoBehaviour
     {
         // Instance
         public static CandidApiManager Instance { get; private set; }
-
+        public static string PaymentHubIdentifier { get { return Instance.paymentHubIdentifier; } }
+        
         //Cache
-        [ShowOnly, SerializeField] InitValue<IAgent> cachedAnonAgent;
-        [ShowOnly, SerializeField] InitValue<string> cachedUserAddress;
-
-        // Canister APIs
+        [ShowOnly, SerializeField] private InitValue<IAgent> cachedAnonAgent;
+        [ShowOnly, SerializeField] private InitValue<string> cachedUserAddress;
+        [SerializeField, ShowOnly] private string principal;
+        [SerializeField, ShowOnly] private string paymentHubIdentifier;
+        
         public WorldApiClient WorldApiClient { get; private set; }
         public WorldHubApiClient WorldHub { get; private set; }
+        [HideInInspector] [CanBeNull] public UnityEvent OnLoginFinished;
 
-        [SerializeField, ShowOnly] string principal;
-        [SerializeField, ShowOnly] string paymentHubIdentifier;
-        public static string PaymentHubIdentifier { get { return Instance.paymentHubIdentifier; } }
-
-        bool areDependenciesReady;
-        bool configsRequested;
+        private bool areDependenciesReady;
+        private bool configsRequested;
+        
+        // Canister APIs
+       
         public bool CanLogIn { 
             get {
-                bool isLoadingDataValid = UserUtil.IsLoginDataValid();
-                bool isAnonLoggedIn = UserUtil.IsAnonLoggedIn();
-                bool isConfigReady = UserUtil.IsDataValid<DataTypes.Config>();
-                bool areActionsReady = UserUtil.IsDataValid<DataTypes.Action>();
+                bool _isLoadingDataValid = UserUtil.IsLoginDataValid();
+                bool _isAnonLoggedIn = UserUtil.IsAnonLoggedIn();
+                bool _isConfigReady = UserUtil.IsDataValid<DataTypes.Config>();
+                bool _areActionsReady = UserUtil.IsDataValid<DataTypes.Action>();
 
-                return isConfigReady && areActionsReady && isLoadingDataValid && isAnonLoggedIn;
+                return _isConfigReady && _areActionsReady && _isLoadingDataValid && _isAnonLoggedIn;
             } 
         }
-
-
 
         private void Awake()
         {
@@ -144,7 +145,8 @@ namespace Candid
 
             LoginManager.Instance.StartLoginFlow(OnLoginCompleted);
         }
-        void OnLoginCompleted(string json)
+
+        private void OnLoginCompleted(string json)
         {
             var getIsLoginResult = UserUtil.GetLogInType();
 
@@ -168,16 +170,14 @@ namespace Candid
 
             try
             {
-                WindowManager.Instance.OpenWindow<BalanceWindow>(null, 1000);
-
                 var identity = Identity.DeserializeJsonToIdentity(json);
-
                 var httpClient = new UnityHttpClient();
-
                 if (useLocalHost) await InitializeCandidApis(new HttpAgent(identity, new Uri("http://localhost:4943")));
                 else await InitializeCandidApis(new HttpAgent(httpClient, identity));
 
                 Debug.Log("You have logged in");
+                OnLoginFinished?.Invoke();
+                OnLoginFinished?.RemoveAllListeners();
             }
             catch (Exception e)
             {
@@ -878,5 +878,6 @@ namespace Candid
             FetchListings().Forget();
         }
         #endregion
+
     }
 }
